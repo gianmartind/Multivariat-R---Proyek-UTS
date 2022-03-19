@@ -1,0 +1,114 @@
+---
+title: "ProyekUTS"
+output: html_document
+date: '2022-03-19'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data = read.csv("E:\\Kuliah\\Statistika Multivariat dengan R\\ProyekUTS\\NHANES_data.csv")
+
+#RIDRETH 
+data$RIDRETH1 = as.factor(data$RIDRETH1)
+levels(data$RIDRETH1)[c(1,2,3,4,5)] <- c("Mexican", "Latino", "White", "Black", "Other")
+
+#RIAGENDR
+data$RIAGENDR = as.factor(data$RIAGENDR)
+levels(data$RIAGENDR)[c(1,2)] <- c("Male", "Female")
+
+#DMDMARTL
+data$DMDMARTL = as.factor(data$DMDMARTL)
+levels(data$DMDMARTL)[c(1,2,3,4,5,6)] <- c("Menikah", "Janda/Duda", "Bercerai", "Berpisah", "Belum Menikah", "Tinggal Bersama")
+
+#FIAINTRP
+data$FIAINTRP = as.factor(data$FIAINTRP)
+levels(data$FIAINTRP)[c(1,2)] <- c("Yes", "No")
+
+#DMDEDUC2
+data$DMDEDUC2 = as.factor(data$DMDEDUC2)
+levels(data$DMDEDUC2)[c(1,2,3,4,5)] <- c("Tidak tamat SMP", "Tamat SMP", "Tamat SMA", "Sarjana", "Pascasarjana")
+
+#SMQ040
+data$SMQ040 = as.factor(data$SMQ040)
+levels(data$SMQ040)[c(1,2,3)] <- c("Setiap hari", "Kadang-kadang", "Tidak merokok")
+
+sum(is.na(data$FIAINTRP))
+sum(is.na(data$INDHHIN2))
+sum(is.na(data))
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+#BMXWT
+ggplot(data, aes(x=BMXWT)) + 
+  geom_boxplot() +
+  ggtitle("Penyebaran Berat Badan (BMXWT)")
+
+#RIDRETH1
+ggplot(data, aes(x=RIDRETH1)) + 
+  geom_bar()
+
+#DMDEDUC2
+ggplot(data, aes(x=DMDEDUC2)) + 
+  geom_bar()
+
+#RIDAGEYR
+ggplot(data, aes(x=RIDAGEYR)) + 
+  geom_histogram()
+
+#DMDMARTL
+ggplot(data, aes(x=DMDMARTL)) + 
+  geom_bar()
+
+#DMDEDUC2
+ggplot(data, aes(x=DMDEDUC2)) + 
+  geom_bar()
+
+#INDHHIN2
+ggplot(data, aes(x=as.factor(INDHHIN2))) + 
+  geom_bar()
+
+#RIAGENDR
+gender_group = data %>%
+  group_by(RIAGENDR) %>%
+  summarise(val=n())
+
+ggplot(gender_group, aes(x="", y=val, fill=factor(RIAGENDR))) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)
+
+#SMQ040
+smq_group = data %>%
+  group_by(SMQ040) %>%
+  summarise(val=n())
+
+ggplot(smq_group, aes(x="", y=val, fill=factor(SMQ040))) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)
+
+#SMQ040
+intrp_group = data %>%
+  group_by(FIAINTRP) %>%
+  summarise(val=n())
+
+ggplot(intrp_group, aes(x="", y=val, fill=factor(FIAINTRP))) +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0)
+
+#Berat badan - Umur
+ggplot(data, aes(x=RIDAGEYR, y=BMXWT)) +
+  geom_point()
+
+#Gender - Berat badan
+ggplot(data, aes(x=RIAGENDR, y=BMXWT)) +
+  geom_boxplot()
+
+#Ras - Berat Badan
+ggplot(data, aes(x=RIDRETH1, y=BMXWT)) +
+  geom_boxplot()
+```
