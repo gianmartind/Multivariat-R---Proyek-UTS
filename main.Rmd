@@ -46,32 +46,38 @@ library(dplyr)
 
 #BMXWT
 ggplot(data, aes(x=BMXWT)) + 
-  geom_boxplot() +
+  geom_boxplot(fill = "indianred2") +
   ggtitle("Penyebaran Berat Badan (BMXWT)")
 
 #RIDRETH1
 ggplot(data, aes(x=RIDRETH1)) + 
-  geom_bar()
+  geom_bar() +
+  ggtitle("Jumlah Responden Berdasarkan Ras (RIDRETH1)")
 
 #DMDEDUC2
 ggplot(data, aes(x=DMDEDUC2)) + 
-  geom_bar()
+  geom_bar() +
+  ggtitle("Jumlah Responden Berdasarkan Tingkat Pendidikan (DMDEDUC2)")
 
 #RIDAGEYR
 ggplot(data, aes(x=RIDAGEYR)) + 
-  geom_histogram()
+  geom_histogram() + 
+  ggtitle("Jumlah Responden Berdasarkan Umur (RIDAGEYR)")
 
 #DMDMARTL
 ggplot(data, aes(x=DMDMARTL)) + 
-  geom_bar()
+  geom_bar() + 
+  ggtitle("Jumlah Responden Berdasarkan Status Pernikahan (DMDMARTL)")
 
 #DMDEDUC2
 ggplot(data, aes(x=DMDEDUC2)) + 
-  geom_bar()
+  geom_bar() +
+  ggtitle("Jumlah Responden Berdasarkan Tingkat Pendidikan (DMDEDUC2)")
 
 #INDHHIN2
 ggplot(data, aes(x=as.factor(INDHHIN2))) + 
-  geom_bar()
+  geom_bar() + 
+  ggtitle("Jumlah Responden Berdasarkan Pendapatan Rumah Tangga Tahunan (INDHHIN2)")
 
 #RIAGENDR
 gender_group = data %>%
@@ -80,7 +86,8 @@ gender_group = data %>%
 
 ggplot(gender_group, aes(x="", y=val, fill=factor(RIAGENDR))) +
   geom_bar(stat="identity", width=1) +
-  coord_polar("y", start=0)
+  coord_polar("y", start=0) +
+  ggtitle("Jenis Kelamin Responden")
 
 #SMQ040
 smq_group = data %>%
@@ -89,7 +96,8 @@ smq_group = data %>%
 
 ggplot(smq_group, aes(x="", y=val, fill=factor(SMQ040))) +
   geom_bar(stat="identity", width=1) +
-  coord_polar("y", start=0)
+  coord_polar("y", start=0) +
+  ggtitle("Seberapa Sering Responden Merokok Tembakau")
 
 #SMQ040
 intrp_group = data %>%
@@ -102,13 +110,16 @@ ggplot(intrp_group, aes(x="", y=val, fill=factor(FIAINTRP))) +
 
 #Berat badan - Umur
 ggplot(data, aes(x=RIDAGEYR, y=BMXWT)) +
-  geom_point()
+  geom_point() +
+  ggtitle("Hubungan Berat Badan dan Umur")
 
 #Gender - Berat badan
 ggplot(data, aes(x=RIAGENDR, y=BMXWT)) +
-  geom_boxplot()
+  geom_boxplot() + 
+  ggtitle("Berat Badan Responden Berdasarkan Gender")
 
 #Ras - Berat Badan
 ggplot(data, aes(x=RIDRETH1, y=BMXWT)) +
-  geom_boxplot()
+  geom_boxplot() +
+  ggtitle("Berat Badan Responden Berdasarkan Ras")
 ```
