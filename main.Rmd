@@ -1,6 +1,8 @@
 ---
 title: "ProyekUTS"
-output: html_document
+output: 
+  html_document: 
+    df_print: paged
 date: '2022-03-19'
 ---
 
@@ -9,7 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-data = read.csv("E:\\Kuliah\\Statistika Multivariat dengan R\\ProyekUTS\\NHANES_data.csv")
+#Load dataset
+data = read.csv("E:\\Kuliah\\Statistika Multivariat dengan R\\Multivariat-R---Proyek-UTS\\NHANES_data.csv")
+
+#Rename categorical number 
 
 #RIDRETH 
 data$RIDRETH1 = as.factor(data$RIDRETH1)
@@ -35,6 +40,8 @@ levels(data$DMDEDUC2)[c(1,2,3,4,5)] <- c("Tidak tamat SMP", "Tamat SMP", "Tamat 
 data$SMQ040 = as.factor(data$SMQ040)
 levels(data$SMQ040)[c(1,2,3)] <- c("Setiap hari", "Kadang-kadang", "Tidak merokok")
 
+
+#Count na values
 sum(is.na(data$FIAINTRP))
 sum(is.na(data$INDHHIN2))
 sum(is.na(data))
@@ -44,40 +51,56 @@ sum(is.na(data))
 library(ggplot2)
 library(dplyr)
 
+#visualization
+
+#univariat
+
 #BMXWT
 ggplot(data, aes(x=BMXWT)) + 
-  geom_boxplot(fill = "indianred2") +
-  ggtitle("Penyebaran Berat Badan (BMXWT)")
+  geom_boxplot() +
+  ggtitle("Penyebaran Berat Badan (BMXWT)") +
+  xlab("Berat badan")
+
+#ALQ130
+ggplot(data, aes(x=ALQ130)) + 
+  geom_boxplot() +
+  ggtitle("Penyebaran Rata-rata Banyaknya Minuman Alkohol (ALQ130)") +
+  xlab("Rata-rata")
 
 #RIDRETH1
 ggplot(data, aes(x=RIDRETH1)) + 
-  geom_bar() +
-  ggtitle("Jumlah Responden Berdasarkan Ras (RIDRETH1)")
+  geom_bar(fill = "dodgerblue1") +
+  ggtitle("Jumlah Responden Berdasarkan Ras (RIDRETH1)") +
+  ylab("Jumlah") +
+  xlab("Ras")
 
 #DMDEDUC2
 ggplot(data, aes(x=DMDEDUC2)) + 
-  geom_bar() +
-  ggtitle("Jumlah Responden Berdasarkan Tingkat Pendidikan (DMDEDUC2)")
+  geom_bar(fill = "dodgerblue1") +
+  ggtitle("Jumlah Responden Berdasarkan Tingkat Pendidikan (DMDEDUC2)") +
+  ylab("Jumlah") +
+  xlab("Tingkat Pendidikan")
 
 #RIDAGEYR
 ggplot(data, aes(x=RIDAGEYR)) + 
-  geom_histogram() + 
-  ggtitle("Jumlah Responden Berdasarkan Umur (RIDAGEYR)")
+  geom_histogram(fill = "dodgerblue1") + 
+  ggtitle("Jumlah Responden Berdasarkan Umur (RIDAGEYR)") +
+  ylab("Jumlah") +
+  xlab("Umur")
 
 #DMDMARTL
 ggplot(data, aes(x=DMDMARTL)) + 
-  geom_bar() + 
-  ggtitle("Jumlah Responden Berdasarkan Status Pernikahan (DMDMARTL)")
-
-#DMDEDUC2
-ggplot(data, aes(x=DMDEDUC2)) + 
-  geom_bar() +
-  ggtitle("Jumlah Responden Berdasarkan Tingkat Pendidikan (DMDEDUC2)")
+  geom_bar(fill = "dodgerblue1") + 
+  ggtitle("Jumlah Responden Berdasarkan Status Pernikahan (DMDMARTL)") +
+  ylab("Jumlah") +
+  xlab("Status Pernikahan")
 
 #INDHHIN2
 ggplot(data, aes(x=as.factor(INDHHIN2))) + 
-  geom_bar() + 
-  ggtitle("Jumlah Responden Berdasarkan Pendapatan Rumah Tangga Tahunan (INDHHIN2)")
+  geom_bar(fill = "dodgerblue1") + 
+  ggtitle("Jumlah Responden Berdasarkan Pendapatan Rumah Tangga Tahunan (INDHHIN2)") +
+  ylab("Jumlah") +
+  xlab("Pendapatan")
 
 #RIAGENDR
 gender_group = data %>%
@@ -87,7 +110,8 @@ gender_group = data %>%
 ggplot(gender_group, aes(x="", y=val, fill=factor(RIAGENDR))) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0) +
-  ggtitle("Jenis Kelamin Responden")
+  ggtitle("Jenis Kelamin Responden") +
+  guides(fill=guide_legend("Gender"))
 
 #SMQ040
 smq_group = data %>%
@@ -97,29 +121,56 @@ smq_group = data %>%
 ggplot(smq_group, aes(x="", y=val, fill=factor(SMQ040))) +
   geom_bar(stat="identity", width=1) +
   coord_polar("y", start=0) +
-  ggtitle("Seberapa Sering Responden Merokok Tembakau")
+  ggtitle("Seberapa Sering Responden Merokok Tembakau") +
+  guides(fill=guide_legend("Status Merokok"))
 
-#SMQ040
+#FIAINTRP
 intrp_group = data %>%
   group_by(FIAINTRP) %>%
   summarise(val=n())
 
 ggplot(intrp_group, aes(x="", y=val, fill=factor(FIAINTRP))) +
   geom_bar(stat="identity", width=1) +
-  coord_polar("y", start=0)
+  coord_polar("y", start=0) +
+  ggtitle("Jumlah Responden yang Menggunakan Interpreter") +
+  guides(fill=guide_legend("Interpreter"))
+```
 
-#Berat badan - Umur
+```{r}
+#bivariat
+
+#Umur - Berat badan
 ggplot(data, aes(x=RIDAGEYR, y=BMXWT)) +
-  geom_point() +
-  ggtitle("Hubungan Berat Badan dan Umur")
+  geom_point(colour="dodgerblue2") +
+  ggtitle("Hubungan Berat Badan dan Umur") +
+  ylab("Berat badan") +
+  xlab("Umur")
 
-#Gender - Berat badan
-ggplot(data, aes(x=RIAGENDR, y=BMXWT)) +
-  geom_boxplot() + 
-  ggtitle("Berat Badan Responden Berdasarkan Gender")
+#Kolom kategorikal dengan Berat badan
+categorical_columns = c("RIAGENDR", "RIDRETH1", "SMQ040", "DMDEDUC2", "DMDMARTL", "FIAINTRP")
 
-#Ras - Berat Badan
-ggplot(data, aes(x=RIDRETH1, y=BMXWT)) +
+for(col in categorical_columns) {
+  title = sprintf("Berat Badan (BMXWT) Responden Berdasarkan \'%s\'", col)
+  plot = ggplot(data, aes_string(x=col, y="BMXWT")) +
+    geom_boxplot() + 
+    ggtitle(title) +
+    ylab("Berat badan") +
+    xlab(col)
+  print(plot)
+}
+
+#Pendapatan - Berat badan
+ggplot(data, aes(x=as.factor(INDHHIN2), y=BMXWT)) +
   geom_boxplot() +
-  ggtitle("Berat Badan Responden Berdasarkan Ras")
+  ggtitle("Berat Badan (BMXWT) Responden Berdasarkan \'INDHHIN2\'") +
+  ylab("Berat badan") +
+  xlab("INDHHIN2")
+
+#Rata2 minuman alkohol - Berat badan
+ggplot(data, aes(x=as.factor(ALQ130), y=BMXWT)) +
+  geom_boxplot() +
+  ggtitle("Berat Badan (BMXWT) Responden Berdasarkan \'ALQ130\'") +
+  ylab("Berat badan") +
+  xlab("ALQ130")
+
 ```
