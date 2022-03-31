@@ -10,7 +10,7 @@ date: '2022-03-19'
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r data load & preprocessing}
 #Load dataset
 data = read.csv("E:\\Kuliah\\Statistika Multivariat dengan R\\Multivariat-R---Proyek-UTS\\NHANES_data.csv")
 
@@ -47,13 +47,11 @@ sum(is.na(data$INDHHIN2))
 sum(is.na(data))
 ```
 
-```{r}
+```{r univariate}
 library(ggplot2)
 library(dplyr)
 
 #visualization
-
-#univariat
 
 #BMXWT
 ggplot(data, aes(x=BMXWT)) + 
@@ -136,9 +134,7 @@ ggplot(intrp_group, aes(x="", y=val, fill=factor(FIAINTRP))) +
   guides(fill=guide_legend("Interpreter"))
 ```
 
-```{r}
-#bivariat
-
+```{r bivariate}
 #Umur - Berat badan
 ggplot(data, aes(x=RIDAGEYR, y=BMXWT)) +
   geom_point(colour="dodgerblue2") +
@@ -174,3 +170,130 @@ ggplot(data, aes(x=as.factor(ALQ130), y=BMXWT)) +
   xlab("ALQ130")
 
 ```
+```{r fill null value}
+#create AGEGRP
+data = data %>% 
+  mutate(AGEGRP = cut_width(RIDAGEYR, width=10))
+
+#get mode function
+mode = function(v) {
+  v = na.omit(v)
+  unique_val = unique(v)
+  unique_val[which.max(tabulate(match(v, unique_val)))]
+}
+
+column_name = c("RIAGENDR", "RIDRETH1", "SMQ040", "DMDEDUC2", "DMDMARTL", "AGEGRP")
+
+#FIAINTRP
+fiaintrp_chisq_pvalue = c()
+for(col in column_name){
+  chisq = chisq.test(data$FIAINTRP, data[,col])
+  fiaintrp_chisq_pvalue = append(fiaintrp_chisq_pvalue, chisq[["p.value"]])
+}
+df_fiaintrp_chisq = data.frame(column_name, fiaintrp_chisq_pvalue)
+
+fiaintrp_mode_by_ridreth1 = data %>% 
+  group_by(RIDRETH1) %>% 
+  summarise(Mode = mode(FIAINTRP))
+fiaintrp_mode_by_ridreth1 = as.data.frame(fiaintrp_mode_by_ridreth1)
+rownames(fiaintrp_mode_by_ridreth1) = fiaintrp_mode_by_ridreth1$RIDRETH1
+
+for(i in 1:nrow(data)){
+  if(is.na(data[i, "FIAINTRP"])){
+    data[i, "FIAINTRP"] = fiaintrp_mode_by_ridreth1[data$RIDRETH1[i], "Mode"]
+  }
+}
+
+#INDHHIN2
+indhhin2_chisq_pvalue = c()
+for(col in column_name){
+  chisq = chisq.test(data$INDHHIN2, data[,col])
+  indhhin2_chisq_pvalue = append(indhhin2_chisq_pvalue, chisq[["p.value"]])
+}
+df_indhhin2_chisq = data.frame(column_name, indhhin2_chisq_pvalue)
+
+indhhin2_mode_by_smq040 = data %>% 
+  group_by(SMQ040) %>% 
+  summarise(Mode = mode(INDHHIN2))
+indhhin2_mode_by_smq040 = as.data.frame(indhhin2_mode_by_smq040)
+rownames(indhhin2_mode_by_smq040) = indhhin2_mode_by_smq040$SMQ040
+
+for(i in 1:nrow(data)){
+  if(is.na(data[i, "INDHHIN2"])){
+    data[i, "INDHHIN2"] = indhhin2_mode_by_smq040[data$SMQ040[i], "Mode"]
+  }
+}
+```
+
+```{r}
+#anova - categorical with more than 2 groups
+summary(aov(BMXWT ~ RIDRETH1, data=data)) #
+summary(aov(BMXWT ~ SMQ040, data=data)) #
+summary(aov(BMXWT ~ DMDEDUC2, data=data))
+summary(aov(BMXWT ~ DMDMARTL, data=data))
+summary(aov(BMXWT ~ INDHHIN2, data=data))
+```
+```{r}
+#t.test - categorical with only 2 groups
+
+#Gender
+gender_male = data %>%
+  filter(RIAGENDR == "Male")
+
+gender_female = data %>%
+  filter(RIAGENDR == "Female")
+
+t.test(gender_male$BMXWT, gender_female$BMXWT) #
+
+#Interpreter
+intrp_yes = data %>%
+  filter(FIAINTRP == "Yes")
+
+intrp_no = data %>%
+  filter(FIAINTRP == "No")
+
+t.test(intrp_yes$BMXWT, intrp_no$BMXWT) #
+```
+```{r}
+#spearman correlation - numerical data
+
+#Age
+cor.test(data$BMXWT, data$RIDAGEYR, method = "spearman") #
+
+#Alcohol
+cor.test(data$BMXWT, data$ALQ130, method = "spearman") #
+```
+
+```{r}
+variables_to_use = c("RIDRETH1", "SMQ040", "RIAGENDR", "FIAINTRP", "RIDAGEYR", "ALQ130")
+
+#model 1
+linear_model = lm(BMXWT ~ RIDRETH1 + SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130, data=data)
+summary(linear_model)
+
+#remove 'RIDRETH1'
+linear_model = lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130, data=data)
+summary(linear_model)
+```
+```{r}
+#interaction plot
+
+variables_to_use_categorical = c("RIDRETH1", "SMQ040", "RIAGENDR", "FIAINTRP")
+
+c = combn(variables_to_use_categorical, 2)
+i = 1
+while(i <= dim(c)[2]){
+  interaction.plot(x.factor = data[[c[1,i]]],
+                 trace.factor = data[[c[2,i]]],
+                 response = data[["BMXWT"]],
+                 fun = median,
+                 ylab = "BMXWT",
+                 xlab = c[1,i],
+                 lwd = 2,
+                 trace.label = c[2,i])
+  i = i + 1
+}
+
+```
+
+
