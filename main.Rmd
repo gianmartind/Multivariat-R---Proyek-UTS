@@ -295,5 +295,218 @@ while(i <= dim(c)[2]){
 }
 
 ```
+```{r}
+linear_model1 = lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data)
+stepwise1 <- step(linear_model1,direction = "both")
+
+summary(stepwise1)
+```
+```{r}
+library(broom)
+model.diag.metrics = augment(stepwise1)
+head(model.diag.metrics, 10)
+
+plot(stepwise1, 1)
+plot(stepwise1, 2)
+
+shapiro.test(stepwise1$residuals)
+```
+
+```{r}
+plot(stepwise1, 3)
+
+library(lmtest)
+bptest(stepwise1)
+```
+```{r}
+boxplot(stepwise1$residuals)
+boxplot.stats(stepwise1$residuals)$out
+
+library(car)
+outlierTest(stepwise)
+```
+
+```{r}
+data1 = data[-c(1020),]
+linear_model2 = lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data1)
+stepwise2 <- step(linear_model2, direction = "both")
+```
+
+```{r}
+model.diag.metrics = augment(stepwise2)
+head(model.diag.metrics, 10)
+
+plot(stepwise2, 1)
+plot(stepwise2, 2)
+
+shapiro.test(stepwise2$residuals)
+```
+```{r}
+data100 = data[-c(53,79,80,147,220,257,304,323,357,430,437,505,514,545,601,614,617,624,631,669,684,695,703,722,734,735,765,848,849,902,977,1020,47,171,433,858,950,1039,1066,564,208),] 
+str(data100)
+linear_model100 = lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data100)
+summary(linear_model100)
+stepwise100<- step(linear_model100,direction = "both")
+
+AIC(linear_model100)
+AIC(stepwise100)
+library(broom)
+model.diag.metrics <- augment(stepwise100)
+
+head(model.diag.metrics,10)
+##Cara panggil nilai residual dan fitted values manual
+head(stepwise100$residuals, 10)
+head(stepwise100$fitted.values, 10)
+plot(stepwise100,1)
+#uji normalitas memakai shapiro
+plot(stepwise100,2)
+resid100<- stepwise100$residuals
+shapiro.test(resid100)
+# uji homokedastik
+library(lmtest)
+bptest(stepwise100)
+
+
+#OUTLIERS
+resid100<-stepwise100$residuals
+bon100<- rstudent(stepwise100)
+boxplot(resid100)
+boxplot.stats(resid100)$out
+
+
+#Bonferroni Outlier Test
+library(car)
+outlierTest(stepwise100)
+```
+
+```{r}
+#log
+linear_model100log = lm(log(BMXWT) ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data100)
+summary(linear_model100)
+stepwise100log<- step(linear_model100log, direction = "both")
+
+AIC(linear_model100log)
+AIC(stepwise100log)
+library(broom)
+model.diag.metrics <- augment(stepwise100log)
+
+head(model.diag.metrics,10)
+##Cara panggil nilai residual dan fitted values manual
+head(stepwise100log$residuals, 10)
+head(stepwise100log$fitted.values, 10)
+plot(stepwise100log,1)
+#uji normalitas memakai shapiro
+plot(stepwise100log,2)
+resid100<- stepwise100log$residuals
+shapiro.test(resid100)
+# uji homokedastik
+library(lmtest)
+bptest(stepwise100log)
+
+
+#OUTLIERS
+resid100<-stepwise100log$residuals
+bon100<- rstudent(stepwise100log)
+boxplot(resid100)
+boxplot.stats(resid100)$out
+
+
+#Bonferroni Outlier Test
+library(car)
+outlierTest(stepwise100log)
+```
+```{r}
+#log2 hapus outlier
+data100log = data[-c(53,79,80,147,220,257,304,323,357,430,437,505,514,545,601,614,617,624,631,669,684,695,703,722,734,735,765,848,849,902,977,1020,47,171,433,858,950,1039,1066,564,208,13,565),]
+
+linear_model100log2 = lm(log(BMXWT) ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data100log)
+summary(linear_model100log2)
+stepwise100log2 <- step(linear_model100log2, direction = "both")
+
+AIC(linear_model100log2)
+AIC(stepwise100log2)
+library(broom)
+model.diag.metrics <- augment(stepwise100log2)
+
+head(model.diag.metrics,10)
+##Cara panggil nilai residual dan fitted values manual
+head(stepwise100log2$residuals, 10)
+head(stepwise100log2$fitted.values, 10)
+plot(stepwise100log2,1)
+#uji normalitas memakai shapiro
+plot(stepwise100log2,2)
+resid100<- stepwise100log2$residuals
+shapiro.test(resid100)
+
+plot(stepwise100log2,5)
+
+# uji homokedastik
+library(lmtest)
+bptest(stepwise100log2)
+
+
+#OUTLIERS
+resid100<-stepwise100log2$residuals
+bon100<- rstudent(stepwise100log2)
+boxplot(resid100)
+boxplot.stats(resid100)$out
+
+
+#Bonferroni Outlier Test
+library(car)
+outlierTest(stepwise100log2)
+```
+
+```{r}
+#boxcox
+library(MASS)
+linear_model100 = lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data100)
+summary(linear_model100)
+stepwise100<- step(linear_model100,direction = "both")
+
+stepwise100box = boxcox(stepwise100)
+```
+```{r}
+linear_model100_0.2 = lm(BMXWT^0.2 ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data100)
+summary(linear_model100_0.2)
+stepwise100_0.2 <- step(linear_model100_0.2, direction = "both")
+
+AIC(linear_model100_0.2)
+AIC(stepwise100_0.2)
+library(broom)
+model.diag.metrics <- augment(stepwise100_0.2)
+
+head(model.diag.metrics,10)
+##Cara panggil nilai residual dan fitted values manual
+head(stepwise100_0.2$residuals, 10)
+head(stepwise100_0.2$fitted.values, 10)
+plot(stepwise100_0.2,1)
+#uji normalitas memakai shapiro
+plot(stepwise100_0.2,2)
+
+resid100<- stepwise100_0.2$residuals
+shapiro.test(resid100)
+# uji homokedastik
+library(lmtest)
+bptest(stepwise100_0.2)
+
+
+#OUTLIERS
+resid100<-stepwise100_0.2$residuals
+bon100<- rstudent(stepwise100_0.2)
+boxplot(resid100)
+boxplot.stats(resid100)$out
+
+
+#Bonferroni Outlier Test
+library(car)
+outlierTest(stepwise100_0.2)
+```
+
+
+
+
+
+
 
 
