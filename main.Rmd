@@ -182,7 +182,7 @@ mode = function(v) {
   unique_val[which.max(tabulate(match(v, unique_val)))]
 }
 
-column_name = c("RIAGENDR", "RIDRETH1", "SMQ040", "DMDEDUC2", "DMDMARTL", "AGEGRP")
+column_name = c("RIAGENDR", "RIDRETH1", "SMQ040", "DMDEDUC2", "DMDMARTL", "AGEGRP", "ALQ130")
 
 #FIAINTRP
 fiaintrp_chisq_pvalue = c()
@@ -212,15 +212,15 @@ for(col in column_name){
 }
 df_indhhin2_chisq = data.frame(column_name, indhhin2_chisq_pvalue)
 
-indhhin2_mode_by_smq040 = data %>% 
-  group_by(SMQ040) %>% 
+indhhin2_mode_by_dmdmartl = data %>% 
+  group_by(DMDMARTL) %>% 
   summarise(Mode = mode(INDHHIN2))
-indhhin2_mode_by_smq040 = as.data.frame(indhhin2_mode_by_smq040)
-rownames(indhhin2_mode_by_smq040) = indhhin2_mode_by_smq040$SMQ040
+indhhin2_mode_by_dmdmartl = as.data.frame(indhhin2_mode_by_dmdmartl)
+rownames(indhhin2_mode_by_dmdmartl) = indhhin2_mode_by_dmdmartl$DMDMARTL
 
 for(i in 1:nrow(data)){
   if(is.na(data[i, "INDHHIN2"])){
-    data[i, "INDHHIN2"] = indhhin2_mode_by_smq040[data$SMQ040[i], "Mode"]
+    data[i, "INDHHIN2"] = indhhin2_mode_by_dmdmartl[data$DMDMARTL[i], "Mode"]
   }
 }
 ```
@@ -309,6 +309,8 @@ head(model.diag.metrics, 10)
 plot(stepwise1, 1)
 plot(stepwise1, 2)
 
+plot(stepwise1)
+
 shapiro.test(stepwise1$residuals)
 ```
 
@@ -341,6 +343,7 @@ plot(stepwise2, 2)
 
 shapiro.test(stepwise2$residuals)
 ```
+
 ```{r}
 data100 = data[-c(53,79,80,147,220,257,304,323,357,430,437,505,514,545,601,614,617,624,631,669,684,695,703,722,734,735,765,848,849,902,977,1020,47,171,433,858,950,1039,1066,564,208),] 
 str(data100)
@@ -403,6 +406,7 @@ shapiro.test(resid100)
 library(lmtest)
 bptest(stepwise100log)
 
+plot(stepwise100log2)
 
 #OUTLIERS
 resid100<-stepwise100log$residuals
@@ -437,8 +441,6 @@ plot(stepwise100log2,1)
 plot(stepwise100log2,2)
 resid100<- stepwise100log2$residuals
 shapiro.test(resid100)
-
-plot(stepwise100log2,5)
 
 # uji homokedastik
 library(lmtest)
