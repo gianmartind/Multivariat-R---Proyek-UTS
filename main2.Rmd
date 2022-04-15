@@ -17,6 +17,7 @@ library(dplyr)
 library(ggplot2)
 library(car)
 library(lmtest)
+library(broom)
 
 data <- read.csv("E:\\Kuliah\\Statistika Multivariat dengan R\\Multivariat-R---Proyek-UTS\\NHANES_data.csv")
 ```
@@ -193,7 +194,7 @@ ggplot(data, aes(x=as.factor(ALQ130), y=BMXWT)) +
 
 #kolom kelompok umur (AGEGRP)
 data = data %>% 
-  mutate(AGEGRP <- cut_width(RIDAGEYR, width=10))
+  mutate(AGEGRP = cut_width(RIDAGEYR, width=10))
 
 #fungsi untuk mencari modus
 mode = function(v) {
@@ -214,6 +215,7 @@ for(col in column_name){
   fiaintrp_chisq_pvalue = append(fiaintrp_chisq_pvalue, chisq[["p.value"]])
 }
 df_fiaintrp_chisq <- data.frame(column_name, fiaintrp_chisq_pvalue)
+df_fiaintrp_chisq
 #paling berkorelasi --> RIDRETH1
 
 #Hitung modus FIAINTRP untuk setiap kategori RIDRETH1
@@ -222,6 +224,7 @@ fiaintrp_mode_by_ridreth1 <- data %>%
   summarise(Mode = mode(FIAINTRP))
 fiaintrp_mode_by_ridreth1 = as.data.frame(fiaintrp_mode_by_ridreth1)
 rownames(fiaintrp_mode_by_ridreth1) = fiaintrp_mode_by_ridreth1$RIDRETH1
+fiaintrp_mode_by_ridreth1
 
 #Ganti nilai NA pada kolom FIAINTRP dengan modus
 for(i in 1:nrow(data)){
@@ -229,6 +232,7 @@ for(i in 1:nrow(data)){
     data[i, "FIAINTRP"] = fiaintrp_mode_by_ridreth1[data$RIDRETH1[i], "Mode"]
   }
 }
+
 ```
 
 ```{r fillNA INDHHIN2}
@@ -239,6 +243,7 @@ for(col in column_name){
   indhhin2_chisq_pvalue = append(indhhin2_chisq_pvalue, chisq[["p.value"]])
 }
 df_indhhin2_chisq <- data.frame(column_name, indhhin2_chisq_pvalue)
+df_indhhin2_chisq
 #paling berkorelasi --> DMDMARTL
 
 #Hitung modus INDHHIN2 untuk setiap kategori DMDMARTL
@@ -247,6 +252,7 @@ indhhin2_mode_by_dmdmartl <- data %>%
   summarise(Mode = mode(INDHHIN2))
 indhhin2_mode_by_dmdmartl = as.data.frame(indhhin2_mode_by_dmdmartl)
 rownames(indhhin2_mode_by_dmdmartl) = indhhin2_mode_by_dmdmartl$DMDMARTL
+indhhin2_mode_by_dmdmartl
 
 #Ganti nilai NA pada kolom INDHHIN2 dengan modus
 for(i in 1:nrow(data)){
@@ -356,14 +362,14 @@ while(i <= dim(c)[2]){
 }
 
 #Berinteraksi => SMQ040*RIDRETH1, FIAINTRP*RIDRETH1, RIAGENDR*SMQ040, FIAINTRP*RIAGENDR
-SMQ040:RIDRETH1 + RIDRETH1:SMQ040 + RIDRETH1:RIAGENDR + FIAINTRP:RIDRETH1 + RIDRETH1:FIAINTRP + RIAGENDR:SMQ040 + SMQ040:RIAGENDR + SMQ040:FIAINTRP + FIAINTRP:RIAGENDR + RIAGENDR:FIAINTRP
+#SMQ040:RIDRETH1 + RIDRETH1:SMQ040 + RIDRETH1:RIAGENDR + FIAINTRP:RIDRETH1 + RIDRETH1:FIAINTRP + RIAGENDR:SMQ040 + SMQ040:RIAGENDR + SMQ040:FIAINTRP + FIAINTRP:RIAGENDR + RIAGENDR:FIAINTRP
 ```
 
 ### Stepwise 1
 
 ```{r}
 #Stepwise dari model dengan interaksi
-linear_model1 <- lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1:SMQ040 + RIDRETH1:FIAINTRP + SMQ040:RIAGENDR + RIAGENDR:FIAINTRP, data=data)
+linear_model1 <- lm(BMXWT ~ RIDAGEYR + ALQ130 + RIDRETH1*SMQ040 + RIDRETH1*FIAINTRP + SMQ040*RIAGENDR + RIAGENDR*FIAINTRP, data=data)
 stepwise1 <- step(linear_model1,direction = "both")
 
 summary(stepwise1)
@@ -380,6 +386,9 @@ shapiro.test(stepwise1$residuals)
 #Breusch-Pagan test
 bptest(stepwise1)
 
+#independensi
+vif(stepwise1)
+
 #cek outlier
 outlierTest(stepwise1)
 ```
@@ -390,8 +399,7 @@ outlierTest(stepwise1)
 #hapus outlier dengan p-value paling kecil
 data2 <- data[-c(1020),]
 
-linear_model2 <- lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1:SMQ040 + RIDRETH1:FIAINTRP + SMQ040:RIAGENDR + RIAGENDR:FIAINTRP, data=data2)
-stepwise2 <- step(linear_model2, direction = "both")
+stepwise2 <- lm(BMXWT ~ RIDAGEYR + ALQ130 + RIDRETH1 + SMQ040 + FIAINTRP + RIAGENDR + SMQ040:RIAGENDR, data=data2)
 
 summary(stepwise2)
 AIC(stepwise2)
@@ -407,6 +415,9 @@ shapiro.test(stepwise2$residuals)
 #Breusch-Pagan test
 bptest(stepwise2)
 
+#independensi
+vif(stepwise2)
+
 #cek outlier
 outlierTest(stepwise2)
 ```
@@ -416,8 +427,7 @@ outlierTest(stepwise2)
 ```{r}
 data3 <- data[-c(1020, 617, 735, 703),]
 
-linear_model3 <- lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1:SMQ040 + RIDRETH1:FIAINTRP + SMQ040:RIAGENDR + RIAGENDR:FIAINTRP, data=data3)
-stepwise3 <- step(linear_model3, direction = "both")
+stepwise3 <- lm(BMXWT ~ RIDAGEYR + ALQ130 + RIDRETH1 + SMQ040 + FIAINTRP + RIAGENDR + SMQ040:RIAGENDR, data=data3)
 
 summary(stepwise3)
 AIC(stepwise3)
@@ -433,6 +443,9 @@ shapiro.test(stepwise3$residuals)
 #Breusch-Pagan test
 bptest(stepwise3)
 
+#independensi
+vif(stepwise3)
+
 #cek outlier
 outlierTest(stepwise3)
 ```
@@ -442,8 +455,7 @@ outlierTest(stepwise3)
 ```{r}
 data4 <- data[-c(1020, 617, 735, 703, 977),]
 
-linear_model4 <- lm(BMXWT ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1:SMQ040 + RIDRETH1:FIAINTRP + SMQ040:RIAGENDR + RIAGENDR:FIAINTRP, data=data4)
-stepwise4 <- step(linear_model4, direction = "both")
+stepwise4 <- lm(BMXWT ~ RIDAGEYR + ALQ130 + RIDRETH1 + SMQ040 + FIAINTRP + RIAGENDR + SMQ040:RIAGENDR, data=data4)
 
 summary(stepwise4)
 AIC(stepwise4)
@@ -459,6 +471,9 @@ shapiro.test(stepwise4$residuals)
 #Breusch-Pagan test
 bptest(stepwise4)
 
+#independensi
+vif(stepwise4)
+
 #cek outlier
 outlierTest(stepwise4)
 ```
@@ -469,8 +484,7 @@ outlierTest(stepwise4)
 #berdasarkan data 4 + hapus baris 722
 data5 <- data[-c(1020, 617, 735, 703, 977, 722),]
 
-linear_model_log <- lm(log(BMXWT) ~ SMQ040 + RIAGENDR + FIAINTRP + RIDAGEYR + ALQ130 + RIDRETH1:SMQ040 + RIDRETH1:FIAINTRP + SMQ040:RIAGENDR + RIAGENDR:FIAINTRP, data=data5)
-stepwise_log <- step(linear_model_log, direction = "both")
+stepwise_log <- lm(log(BMXWT) ~ RIDAGEYR + ALQ130 + RIDRETH1 + SMQ040 + FIAINTRP + RIAGENDR + SMQ040:RIAGENDR, data=data5)
 
 summary(stepwise_log)
 AIC(stepwise_log)
@@ -485,6 +499,9 @@ shapiro.test(stepwise_log$residuals)
 
 #Breusch-Pagan test
 bptest(stepwise_log)
+
+#independensi
+vif(stepwise_log)
 
 #cek outlier
 outlierTest(stepwise_log)
@@ -512,6 +529,9 @@ shapiro.test(stepwise_sqrt$residuals)
 
 #Breusch-Pagan test
 bptest(stepwise_sqrt)
+
+#independensi
+vif(stepwise_sqrt)
 
 #cek outlier
 outlierTest(stepwise_sqrt)
